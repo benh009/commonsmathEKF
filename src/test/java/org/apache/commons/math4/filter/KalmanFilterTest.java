@@ -15,11 +15,7 @@
 package org.apache.commons.math4.filter;
 
 import org.apache.commons.math4.distribution.NormalDistribution;
-import org.apache.commons.math4.filter.DefaultMeasurementModel;
-import org.apache.commons.math4.filter.DefaultProcessModel;
 import org.apache.commons.math4.filter.KalmanFilter;
-import org.apache.commons.math4.filter.MeasurementModel;
-import org.apache.commons.math4.filter.ProcessModel;
 import org.apache.commons.math4.linear.Array2DRowRealMatrix;
 import org.apache.commons.math4.linear.ArrayRealVector;
 import org.apache.commons.math4.linear.MatrixDimensionMismatchException;
@@ -56,10 +52,10 @@ public class KalmanFilterTest {
         // R = [ 0 ]
         RealMatrix R = new Array2DRowRealMatrix(new double[] { 0 });
 
-        ProcessModel pm
-            = new DefaultProcessModel(A, B, Q,
+        ProcessModelKF pm
+            = new DefaultProcessModelKF(A, B, Q,
                                       new ArrayRealVector(new double[] { 0 }), null);
-        MeasurementModel mm = new DefaultMeasurementModel(H, R);
+        MeasurementModelKF mm = new DefaultMeasurementModelKF(H, R);
         new KalmanFilter(pm, mm);
         Assert.fail("transition and measurement matrix should not be compatible");
     }
@@ -80,10 +76,10 @@ public class KalmanFilterTest {
         // R = [ 0 ]
         RealMatrix R = new Array2DRowRealMatrix(new double[] { 0 });
 
-        ProcessModel pm
-            = new DefaultProcessModel(A, B, Q,
+        ProcessModelKF pm
+            = new DefaultProcessModelKF(A, B, Q,
                                       new ArrayRealVector(new double[] { 0 }), null);
-        MeasurementModel mm = new DefaultMeasurementModel(H, R);
+        MeasurementModelKF mm = new DefaultMeasurementModelKF(H, R);
         new KalmanFilter(pm, mm);
         Assert.fail("transition and control matrix should not be compatible");
     }
@@ -109,10 +105,10 @@ public class KalmanFilterTest {
         // R = [ 0.1 ]
         RealMatrix R = new Array2DRowRealMatrix(new double[] { measurementNoise });
 
-        ProcessModel pm
-            = new DefaultProcessModel(A, B, Q,
+        ProcessModelKF pm
+            = new DefaultProcessModelKF(A, B, Q,
                                       new ArrayRealVector(new double[] { constantValue }), null);
-        MeasurementModel mm = new DefaultMeasurementModel(H, R);
+        MeasurementModelKF mm = new DefaultMeasurementModelKF(H, R);
         KalmanFilter filter = new KalmanFilter(pm, mm);
 
         Assert.assertEquals(1, filter.getMeasurementDimension());
@@ -202,8 +198,8 @@ public class KalmanFilterTest {
         // constant control input, increase velocity by 0.1 m/s per cycle
         RealVector u = new ArrayRealVector(new double[] { 0.1d });
 
-        ProcessModel pm = new DefaultProcessModel(A, B, Q, x, P0);
-        MeasurementModel mm = new DefaultMeasurementModel(H, R);
+        ProcessModelKF pm = new DefaultProcessModelKF(A, B, Q, x, P0);
+        MeasurementModelKF mm = new DefaultMeasurementModelKF(H, R);
         KalmanFilter filter = new KalmanFilter(pm, mm);
 
         Assert.assertEquals(1, filter.getMeasurementDimension());
@@ -388,8 +384,8 @@ public class KalmanFilterTest {
                 {   0,    0,   0, 1e-3 }
         });
 
-        final ProcessModel pm = new DefaultProcessModel(A, B, Q, initialState, initialErrorCovariance);
-        final MeasurementModel mm = new DefaultMeasurementModel(H, R);
+        final ProcessModelKF pm = new DefaultProcessModelKF(A, B, Q, initialState, initialErrorCovariance);
+        final MeasurementModelKF mm = new DefaultMeasurementModelKF(H, R);
         final KalmanFilter filter = new KalmanFilter(pm, mm);
 
         final RandomGenerator rng = new Well19937c(1000);

@@ -16,11 +16,7 @@
  */
 package org.apache.commons.math4.filter;
 
-import org.apache.commons.math4.exception.DimensionMismatchException;
-import org.apache.commons.math4.exception.NoDataException;
-import org.apache.commons.math4.exception.NullArgumentException;
-import org.apache.commons.math4.linear.Array2DRowRealMatrix;
-import org.apache.commons.math4.linear.ArrayRealVector;
+
 import org.apache.commons.math4.linear.RealMatrix;
 import org.apache.commons.math4.linear.RealVector;
 
@@ -29,88 +25,18 @@ import org.apache.commons.math4.linear.RealVector;
  *
  * @since 3.0
  */
-public class DefaultProcessModel implements ProcessModel {
-    /**
-     * The state transition matrix, used to advance the internal state estimation each time-step.
-     */
-    private final RealMatrix stateTransitionMatrix;
+public abstract class DefaultProcessModel implements ProcessModel {
 
-    /**
-     * The control matrix, used to integrate a control input into the state estimation.
-     */
-    private final RealMatrix controlMatrix;
+	
 
-    /** The process noise covariance matrix. */
-    private final RealMatrix processNoiseCovMatrix;
+
 
     /** The initial state estimation of the observed process. */
-    private final RealVector initialStateEstimateVector;
+    protected final RealVector initialStateEstimateVector;
 
     /** The initial error covariance matrix of the observed process. */
-    private final RealMatrix initialErrorCovMatrix;
+    protected final RealMatrix initialErrorCovMatrix;
 
-    /**
-     * Create a new {@link ProcessModel}, taking double arrays as input parameters.
-     *
-     * @param stateTransition
-     *            the state transition matrix
-     * @param control
-     *            the control matrix
-     * @param processNoise
-     *            the process noise matrix
-     * @param initialStateEstimate
-     *            the initial state estimate vector
-     * @param initialErrorCovariance
-     *            the initial error covariance matrix
-     * @throws NullArgumentException
-     *             if any of the input arrays is {@code null}
-     * @throws NoDataException
-     *             if any row / column dimension of the input matrices is zero
-     * @throws DimensionMismatchException
-     *             if any of the input matrices is non-rectangular
-     */
-    public DefaultProcessModel(final double[][] stateTransition,
-                               final double[][] control,
-                               final double[][] processNoise,
-                               final double[] initialStateEstimate,
-                               final double[][] initialErrorCovariance)
-            throws NullArgumentException, NoDataException, DimensionMismatchException {
-
-        this(new Array2DRowRealMatrix(stateTransition),
-                new Array2DRowRealMatrix(control),
-                new Array2DRowRealMatrix(processNoise),
-                new ArrayRealVector(initialStateEstimate),
-                new Array2DRowRealMatrix(initialErrorCovariance));
-    }
-
-    /**
-     * Create a new {@link ProcessModel}, taking double arrays as input parameters.
-     * <p>
-     * The initial state estimate and error covariance are omitted and will be initialized by the
-     * {@link KalmanFilter} to default values.
-     *
-     * @param stateTransition
-     *            the state transition matrix
-     * @param control
-     *            the control matrix
-     * @param processNoise
-     *            the process noise matrix
-     * @throws NullArgumentException
-     *             if any of the input arrays is {@code null}
-     * @throws NoDataException
-     *             if any row / column dimension of the input matrices is zero
-     * @throws DimensionMismatchException
-     *             if any of the input matrices is non-rectangular
-     */
-    public DefaultProcessModel(final double[][] stateTransition,
-                               final double[][] control,
-                               final double[][] processNoise)
-            throws NullArgumentException, NoDataException, DimensionMismatchException {
-
-        this(new Array2DRowRealMatrix(stateTransition),
-                new Array2DRowRealMatrix(control),
-                new Array2DRowRealMatrix(processNoise), null, null);
-    }
 
     /**
      * Create a new {@link ProcessModel}, taking double arrays as input parameters.
@@ -126,35 +52,20 @@ public class DefaultProcessModel implements ProcessModel {
      * @param initialErrorCovariance
      *            the initial error covariance matrix
      */
-    public DefaultProcessModel(final RealMatrix stateTransition,
-                               final RealMatrix control,
-                               final RealMatrix processNoise,
+    public DefaultProcessModel(
+                              
                                final RealVector initialStateEstimate,
                                final RealMatrix initialErrorCovariance) {
-        this.stateTransitionMatrix = stateTransition;
-        this.controlMatrix = control;
-        this.processNoiseCovMatrix = processNoise;
+
         this.initialStateEstimateVector = initialStateEstimate;
         this.initialErrorCovMatrix = initialErrorCovariance;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public RealMatrix getStateTransitionMatrix() {
-        return stateTransitionMatrix;
-    }
 
-    /** {@inheritDoc} */
-    @Override
-    public RealMatrix getControlMatrix() {
-        return controlMatrix;
-    }
 
-    /** {@inheritDoc} */
-    @Override
-    public RealMatrix getProcessNoise() {
-        return processNoiseCovMatrix;
-    }
+
+
+
 
     /** {@inheritDoc} */
     @Override

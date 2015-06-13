@@ -24,12 +24,6 @@ import org.apache.commons.math4.linear.RealMatrix;
  * @since 3.0
  */
 public interface MeasurementModel {
-    /**
-     * Returns the measurement matrix.
-     *
-     * @return the measurement matrix
-     */
-    RealMatrix getMeasurementMatrix();
 
     /**
      * Returns the measurement noise matrix. This method is called by the {@link KalmanFilter} every
@@ -41,4 +35,7 @@ public interface MeasurementModel {
      * @see KalmanFilter#correct(org.apache.commons.math4.linear.RealVector)
      */
     RealMatrix getMeasurementNoise();
+    
+    
+
 }

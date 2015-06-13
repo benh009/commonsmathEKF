@@ -25,19 +25,6 @@ import org.apache.commons.math4.linear.RealVector;
  * @since 3.0
  */
 public interface ProcessModel {
-    /**
-     * Returns the state transition matrix.
-     *
-     * @return the state transition matrix
-     */
-    RealMatrix getStateTransitionMatrix();
-
-    /**
-     * Returns the control matrix.
-     *
-     * @return the control matrix
-     */
-    RealMatrix getControlMatrix();
 
     /**
      * Returns the process noise matrix. This method is called by the {@link KalmanFilter} every
@@ -50,6 +37,23 @@ public interface ProcessModel {
      * @see KalmanFilter#predict(RealVector)
      */
     RealMatrix getProcessNoise();
+	
+	
+
+	
+
+
+    /**
+     * Returns the process noise matrix. This method is called by the {@link KalmanFilter} every
+     * prediction step, so implementations of this interface may return a modified process noise
+     * depending on the current iteration step.
+     *
+     * @return the process noise matrix
+     * @see KalmanFilter#predict()
+     * @see KalmanFilter#predict(double[])
+     * @see KalmanFilter#predict(RealVector)
+     */
+    RealMatrix getProcessNoise(RealVector u);
 
     /**
      * Returns the initial state estimation vector.
