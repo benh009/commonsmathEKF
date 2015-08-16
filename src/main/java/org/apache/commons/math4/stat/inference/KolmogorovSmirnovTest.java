@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.apache.commons.math4.util.Precision;
 import org.apache.commons.math4.distribution.RealDistribution;
 import org.apache.commons.math4.exception.InsufficientDataException;
 import org.apache.commons.math4.exception.MathArithmeticException;
@@ -294,55 +295,27 @@ public class KolmogorovSmirnovTest {
         final int n = sx.length;
         final int m = sy.length;
 
+        int rankX = 0;
+        int rankY = 0;
+
         // Find the max difference between cdf_x and cdf_y
         double supD = 0d;
-        // First walk x points
-        for (int i = 0; i < n; i++) {
-            final double x_i = sx[i];
-            // ties can be safely ignored
-            if (i > 0 && x_i == sx[i-1]) {
-                continue;
+        do {
+            double z = Double.compare(sx[rankX], sy[rankY]) <= 0 ? sx[rankX] : sy[rankY];
+            while(rankX < n && Double.compare(sx[rankX], z) == 0) {
+                rankX += 1;
             }
-            final double cdf_x = edf(x_i, sx);
-            final double cdf_y = edf(x_i, sy);
+            while(rankY < m && Double.compare(sy[rankY], z) == 0) {
+                rankY += 1;
+            }
+            final double cdf_x = rankX / (double) n;
+            final double cdf_y = rankY / (double) m;
             final double curD = FastMath.abs(cdf_x - cdf_y);
             if (curD > supD) {
                 supD = curD;
             }
-        }
-        // Now look at y
-        for (int i = 0; i < m; i++) {
-            final double y_i = sy[i];
-            // ties can be safely ignored
-            if (i > 0 && y_i == sy[i-1]) {
-                continue;
-            }
-            final double cdf_x = edf(y_i, sx);
-            final double cdf_y = edf(y_i, sy);
-            final double curD = FastMath.abs(cdf_x - cdf_y);
-            if (curD > supD) {
-                supD = curD;
-            }
-        }
+        } while(rankX < n && rankY < m);
         return supD;
-    }
-
-    /**
-     * Computes the empirical distribution function.
-     *
-     * @param x the given x
-     * @param samples the observations
-     * @return the empirical distribution function \(F_n(x)\)
-     */
-    private double edf(final double x, final double[] samples) {
-        final int n = samples.length;
-        int index = Arrays.binarySearch(samples, x);
-        if (index >= 0) {
-            while(index < (n - 1) && samples[index+1] == x) {
-                ++index;
-            }
-        }
-        return index >= 0 ? (index + 1d) / n : (-index - 1d) / n;
     }
 
     /**
@@ -860,7 +833,7 @@ public class KolmogorovSmirnovTest {
      */
     public double ksSum(double t, double tolerance, int maxIterations) {
         if (t == 0.0) {
-            return 1.0;
+            return 0.0;
         }
 
         // TODO: for small t (say less than 1), the alternative expansion in part 3 of [1]
@@ -912,6 +885,7 @@ public class KolmogorovSmirnovTest {
         long tail = 0;
         final double[] nSet = new double[n];
         final double[] mSet = new double[m];
+        final double tol = 1e-12;  // d-values within tol of one another are considered equal
         while (combinationsIterator.hasNext()) {
             // Generate an n-set
             final int[] nSetI = combinationsIterator.next();
@@ -926,9 +900,8 @@ public class KolmogorovSmirnovTest {
                 }
             }
             final double curD = kolmogorovSmirnovStatistic(nSet, mSet);
-            if (curD > d) {
-                tail++;
-            } else if (curD == d && !strict) {
+            final int order = Precision.compareTo(curD, d, tol);
+            if (order > 0 || (order == 0 && !strict)) {
                 tail++;
             }
         }
@@ -961,6 +934,26 @@ public class KolmogorovSmirnovTest {
     }
 
     /**
+     * Fills a boolean array randomly with a fixed number of {@code true} values.
+     * The method uses a simplified version of the Fisher-Yates shuffle algorithm.
+     * By processing first the {@code true} values followed by the remaining {@code false} values
+     * less random numbers need to be generated. The method is optimized for the case
+     * that the number of {@code true} values is larger than or equal to the number of
+     * {@code false} values.
+     *
+     * @param b boolean array
+     * @param numberOfTrueValues number of {@code true} values the boolean array should finally have
+     * @param rng random data generator
+     */
+    static void fillBooleanArrayRandomlyWithFixedNumberTrueValues(final boolean[] b, final int numberOfTrueValues, final RandomGenerator rng) {
+        Arrays.fill(b, true);
+        for (int k = numberOfTrueValues; k < b.length; k++) {
+            final int r = rng.nextInt(k + 1);
+            b[(b[r]) ? r : k] = false;
+        }
+    }
+
+    /**
      * Uses Monte Carlo simulation to approximate \(P(D_{n,m} > d)\) where \(D_{n,m}\) is the
      * 2-sample Kolmogorov-Smirnov statistic. See
      * {@link #kolmogorovSmirnovStatistic(double[], double[])} for the definition of \(D_{n,m}\).
@@ -979,51 +972,41 @@ public class KolmogorovSmirnovTest {
      * @return proportion of randomly generated m-n partitions of m + n that result in \(D_{n,m}\)
      *         greater than (resp. greater than or equal to) {@code d}
      */
-    public double monteCarloP(double d, int n, int m, boolean strict, int iterations) {
-        final int[] nPlusMSet = MathArrays.natural(m + n);
-        final double[] nSet = new double[n];
-        final double[] mSet = new double[m];
+    public double monteCarloP(final double d, final int n, final int m, final boolean strict,
+                              final int iterations) {
+
+        // ensure that nn is always the max of (n, m) to require fewer random numbers
+        final int nn = FastMath.max(n, m);
+        final int mm = FastMath.min(n, m);
+        final int sum = nn + mm;
+        final double tol = 1e-12;  // d-values within tol of one another are considered equal
+
         int tail = 0;
+        final boolean b[] = new boolean[sum];
         for (int i = 0; i < iterations; i++) {
-            copyPartition(nSet, mSet, nPlusMSet, n, m);
-            final double curD = kolmogorovSmirnovStatistic(nSet, mSet);
-            if (curD > d) {
-                tail++;
-            } else if (curD == d && !strict) {
-                tail++;
+            fillBooleanArrayRandomlyWithFixedNumberTrueValues(b, nn, rng);
+            int rankN = b[0] ? 1 : 0;
+            int rankM = b[0] ? 0 : 1;
+            boolean previous = b[0];
+            for(int j = 1; j < b.length; ++j) {
+                if (b[j] != previous) {
+                    final double cdf_n = rankN / (double) nn;
+                    final double cdf_m = rankM / (double) mm;
+                    final double curD = FastMath.abs(cdf_n - cdf_m);
+                    final int order = Precision.compareTo(curD, d, tol);
+                    if (order > 0 || (order == 0 && !strict)) {
+                        tail++;
+                        break;
+                    }
+                }
+                previous = b[j];
+                if (b[j]) {
+                    rankN++;
+                } else {
+                    rankM++;
+                }
             }
-            MathArrays.shuffle(nPlusMSet, rng);
-            Arrays.sort(nPlusMSet, 0, n);
         }
         return (double) tail / iterations;
-    }
-
-    /**
-     * Copies the first {@code n} elements of {@code nSetI} into {@code nSet} and its complement
-     * relative to {@code m + n} into {@code mSet}. For example, if {@code m = 3}, {@code n = 3} and
-     * {@code nSetI = [1,4,5,2,3,0]} then after this method returns, we will have
-     * {@code nSet = [1,4,5], mSet = [0,2,3]}.
-     * <p>
-     * <strong>Precondition:</strong> The first {@code n} elements of {@code nSetI} must be sorted
-     * in ascending order.
-     * </p>
-     *
-     * @param nSet array to fill with the first {@code n} elements of {@code nSetI}
-     * @param mSet array to fill with the {@code m} complementary elements of {@code nSet} relative
-     *        to {@code m + n}
-     * @param nSetI array whose first {@code n} elements specify the members of {@code nSet}
-     * @param n number of elements in the first output array
-     * @param m number of elements in the second output array
-     */
-    private void copyPartition(double[] nSet, double[] mSet, int[] nSetI, int n, int m) {
-        int j = 0;
-        int k = 0;
-        for (int i = 0; i < n + m; i++) {
-            if (j < n && nSetI[j] == i) {
-                nSet[j++] = i;
-            } else {
-                mSet[k++] = i;
-            }
-        }
     }
 }

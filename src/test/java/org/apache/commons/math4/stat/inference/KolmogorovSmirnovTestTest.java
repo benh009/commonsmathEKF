@@ -17,10 +17,15 @@
 
 package org.apache.commons.math4.stat.inference;
 
+import java.util.Arrays;
+
+import org.apache.commons.math4.TestUtils;
 import org.apache.commons.math4.distribution.NormalDistribution;
 import org.apache.commons.math4.distribution.UniformRealDistribution;
+import org.apache.commons.math4.random.RandomGenerator;
 import org.apache.commons.math4.random.Well19937c;
 import org.apache.commons.math4.stat.inference.KolmogorovSmirnovTest;
+import org.apache.commons.math4.util.CombinatoricsUtils;
 import org.apache.commons.math4.util.FastMath;
 import org.junit.Assert;
 import org.junit.Test;
@@ -303,6 +308,37 @@ public class KolmogorovSmirnovTestTest {
     }
 
     @Test
+    public void testTwoSampleMonteCarloDifferentSampleSizes() {
+        final KolmogorovSmirnovTest test = new KolmogorovSmirnovTest(new Well19937c(1000));
+        final int sampleSize1 = 14;
+        final int sampleSize2 = 7;
+        final double d = 0.3;
+        final boolean strict = false;
+        final double tol = 1e-2;
+        Assert.assertEquals(test.exactP(d, sampleSize1, sampleSize2, strict),
+                            test.monteCarloP(d, sampleSize1, sampleSize2, strict,
+                                             KolmogorovSmirnovTest.MONTE_CARLO_ITERATIONS),
+                            tol);
+    }
+
+    /**
+     * Performance test for monteCarlo method. Disabled by default.
+     */
+    // @Test
+    public void testTwoSampleMonteCarloPerformance() {
+        int numIterations = 100_000;
+        int N = (int)Math.sqrt(KolmogorovSmirnovTest.LARGE_SAMPLE_PRODUCT);
+        final KolmogorovSmirnovTest test = new KolmogorovSmirnovTest(new Well19937c(1000));
+        for (int n = 2; n <= N; ++n) {
+            long startMillis = System.currentTimeMillis();
+            int m = KolmogorovSmirnovTest.LARGE_SAMPLE_PRODUCT/n;
+            Assert.assertEquals(0d, test.monteCarloP(Double.POSITIVE_INFINITY, n, m, true, numIterations), 0d);
+            long endMillis = System.currentTimeMillis();
+            System.out.println("n=" + n + ", m=" + m + ", time=" + (endMillis-startMillis)/1000d + "s");
+        }
+    }
+
+    @Test
     public void testTwoSampleWithManyTies() {
         // MATH-1197
         final double[] x = {
@@ -363,6 +399,137 @@ public class KolmogorovSmirnovTestTest {
         Assert.assertEquals(0.0640394088, test.kolmogorovSmirnovStatistic(x, y), 1e-6);
         Assert.assertEquals(0.9792777290, test.kolmogorovSmirnovTest(x, y), 1e-6);
 
+    }
+
+    @Test
+    public void testTwoSamplesAllEqual() {
+        int iterations = 10_000;
+        final KolmogorovSmirnovTest test = new KolmogorovSmirnovTest();
+        for (int i = 2; i < 30; ++i) {
+            // testing values with ties
+            double[] values = new double[i];
+            Arrays.fill(values, i);
+            // testing values without ties
+            double[] ascendingValues = new double[i];
+            for (int j = 0; j < ascendingValues.length; j++) {
+                ascendingValues[j] = j;
+            }
+
+            Assert.assertEquals(0., test.kolmogorovSmirnovStatistic(values, values), 0.);
+            Assert.assertEquals(0., test.kolmogorovSmirnovStatistic(ascendingValues, ascendingValues), 0.);
+
+            if (i < 10) {
+                Assert.assertEquals(1.0, test.exactP(0, values.length, values.length, true), 0.);
+                Assert.assertEquals(1.0, test.exactP(0, values.length, values.length, false), 0.);
+            }
+
+            Assert.assertEquals(1.0, test.monteCarloP(0, values.length, values.length, true, iterations), 0.);
+            Assert.assertEquals(1.0, test.monteCarloP(0, values.length, values.length, false, iterations), 0.);
+
+            Assert.assertEquals(1.0, test.approximateP(0, values.length, values.length), 0.);
+            Assert.assertEquals(1.0, test.approximateP(0, values.length, values.length), 0.);
+        }
+    }
+    
+    /**
+     * JIRA: MATH-1245
+     * 
+     * Verify that D-values are not viewed as distinct when they are mathematically equal
+     * when computing p-statistics for small sample tests. Reference values are from R 3.2.0.
+     */
+    @Test
+    public void testDRounding() {
+        final double tol = 1e-12;
+        final double[] x = {0, 2, 3, 4, 5, 6, 7, 8, 9, 12};
+        final double[] y = {1, 10, 11, 13, 14, 15, 16, 17, 18};
+        final KolmogorovSmirnovTest test = new KolmogorovSmirnovTest();
+        Assert.assertEquals(0.0027495724090154106, test.kolmogorovSmirnovTest(x, y,false), tol);
+        
+        final double[] x1 = {2, 4, 6, 8, 9, 10, 11, 12, 13};
+        final double[] y1 = {0, 1, 3, 5, 7};
+        Assert.assertEquals(0.085914085914085896, test.kolmogorovSmirnovTest(x1, y1, false), tol);
+        
+        final double[] x2 = {4, 6, 7, 8, 9, 10, 11};
+        final double[] y2 = {0, 1, 2, 3, 5};
+        Assert.assertEquals(0.015151515151515027, test.kolmogorovSmirnovTest(x2, y2, false), tol); 
+    }
+    
+    /**
+     * JIRA: MATH-1245
+     * 
+     * Verify that D-values are not viewed as distinct when they are mathematically equal
+     * when computing p-statistics for small sample tests. Reference values are from R 3.2.0.
+     */
+    @Test
+    public void testDRoundingMonteCarlo() {
+        final double tol = 1e-2;
+        final int iterations = 1000000;
+        final KolmogorovSmirnovTest test = new KolmogorovSmirnovTest(new Well19937c(1000));
+        
+        final double[] x = {0, 2, 3, 4, 5, 6, 7, 8, 9, 12};
+        final double[] y = {1, 10, 11, 13, 14, 15, 16, 17, 18};
+        double d = test.kolmogorovSmirnovStatistic(x, y);
+        Assert.assertEquals(0.0027495724090154106, test.monteCarloP(d, x.length, y.length, false, iterations), tol);
+        
+        final double[] x1 = {2, 4, 6, 8, 9, 10, 11, 12, 13};
+        final double[] y1 = {0, 1, 3, 5, 7};
+        d = test.kolmogorovSmirnovStatistic(x1, y1);
+        Assert.assertEquals(0.085914085914085896, test.monteCarloP(d, x1.length, y1.length, false, iterations), tol);
+        
+        final double[] x2 = {4, 6, 7, 8, 9, 10, 11};
+        final double[] y2 = {0, 1, 2, 3, 5};
+        d = test.kolmogorovSmirnovStatistic(x2, y2);
+        Assert.assertEquals(0.015151515151515027, test.monteCarloP(d, x2.length, y2.length, false, iterations), tol);
+    }
+
+    @Test
+    public void testFillBooleanArrayRandomlyWithFixedNumberTrueValues() {
+
+        final int[][] parameters = {{5, 1}, {5, 2}, {5, 3}, {5, 4}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {8, 6}, {8, 7}};
+
+        final double alpha = 0.001;
+        final int numIterations = 1000000;
+
+        final RandomGenerator rng = new Well19937c(0);
+
+        for (final int[] parameter : parameters) {
+
+            final int arraySize = parameter[0];
+            final int numberOfTrueValues = parameter[1];
+
+            final boolean[] b = new boolean[arraySize];
+            final long[] counts = new long[1 << arraySize];
+
+            for (int i = 0; i < numIterations; ++i) {
+                KolmogorovSmirnovTest.fillBooleanArrayRandomlyWithFixedNumberTrueValues(b, numberOfTrueValues, rng);
+                int x = 0;
+                for (int j = 0; j < arraySize; ++j) {
+                    x = ((x << 1) | ((b[j])?1:0));
+                }
+                counts[x] += 1;
+            }
+
+            final int numCombinations = (int) CombinatoricsUtils.binomialCoefficient(arraySize, numberOfTrueValues);
+
+            final long[] observed = new long[numCombinations];
+            final double[] expected = new double[numCombinations];
+            Arrays.fill(expected, numIterations / (double) numCombinations);
+
+            int observedIdx = 0;
+
+            for (int i = 0; i < (1 << arraySize); ++i) {
+                if (Integer.bitCount(i) == numberOfTrueValues) {
+                    observed[observedIdx] = counts[i];
+                    observedIdx += 1;
+                }
+                else {
+                    Assert.assertEquals(0, counts[i]);
+                }
+            }
+
+            Assert.assertEquals(numCombinations, observedIdx);
+            TestUtils.assertChiSquareAccept(expected, observed, alpha);
+        }
     }
 
     /**

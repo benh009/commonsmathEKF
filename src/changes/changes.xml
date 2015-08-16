@@ -54,6 +54,57 @@ If the output is not quite correct, check for invisible trailing spaces!
     </release>
 
     <release version="4.0" date="XXXX-XX-XX" description="">
+      <action dev="erans" type="fix" issue="MATH-1255"> <!-- backported to 3.6 -->
+        Wrong neighbourhood size in class "KohonenUpdateAction" (package "o.a.c.m.ml.neuralnet.sofm").
+      </action>
+      <action dev="psteitz" type="fix" issue="MATH-1252" due-to="John Bay"> <!-- backported to 3.6 -->
+        ResizableDoubleArray constructor does not work with double array of size 1.
+      </action>
+      <action dev="erans" type="fix" issue="MATH-1251"> <!-- backported to 3.6 -->
+        Fixed initial value of "number of calls" counter in class "KohonenUpdateAction"
+        (package "o.a.c.m.ml.neuralnet.sofm").
+      </action>
+      <action dev="erans" type="add" issue="MATH-1250"> <!-- backported to 3.6 -->
+        "Neuron" class (package "o.a.c.m.ml.neuralnet"): added methods that can be used
+        to assess concurrency performance.
+      </action>
+      <action dev="erans" type="fix" issue="MATH-1248" due-to="Chris Popp"> <!-- backported to 3.6 -->
+        Removed unnecessary allocations in "BigFraction" (package "o.a.c.m.fraction").
+      </action>
+      <action dev="psteitz" type="fix" issue="MATH-1245"> <!-- backported to 3.6 -->
+        Fixed error in computing discrete distribution of D statistics for small-sample
+        2-sample Kolmogorov-Smirnov tests. Error was causing incorrect p-values returned 
+        by exactP and monteCarloP methods (used by default for small, mid-size samples).
+      </action>
+      <action dev="erans" type="update" issue="MATH-1243"> <!-- backported to 3.6 -->
+        Refactored implementation of the "miscrosphere projection"
+        interpolation algorithm.
+        New classes: "MicrosphereProjectionInterpolator",
+        "InterpolatingMicrosphere" and "InterpolatingMicrosphere2D"
+        replace "MicrosphereInterpolator" and "MicrosphereInterpolatingFunction".
+        (package "o.a.c.m.analysis.interpolation").
+      </action>
+      <action dev="erans" type="add" issue="MATH-1244"> <!-- backported to 3.6 -->
+        Method "cosAngle" in "o.a.c.m.util.MathArrays".
+      </action>
+      <action dev="tn" type="fix" issue="MATH-1240"> <!-- backported to 3.6 -->
+        "KolmogorovSmirnovTest#ksSum(...)" returned wrong result in case the provided
+        t-parameters was zero. This affected the calculation of "approximateP(...)" for
+        identical samples.
+      </action>    
+      <action dev="tn" type="fix" issue="MATH-1242" due-to="Otmar Ertl"> <!-- backported to 3.6 -->
+        Improved performance to calculate the two-sample Kolmogorov-Smirnov test
+        via monte carlo simulation ("KolmogorovSmirnovTets#monteCarloP(...)").
+      </action>
+      <action dev="tn" type="fix" issue="MATH-1241" due-to="Aleksei Dievskii"> <!-- backported to 3.6 -->
+        A "StackOverflowException" was thrown when passing Double.NaN or
+        infinity to "Gamma#digamma(double)" or "Gamma#trigamma(double)".
+        Now the input value is propagated to the output if it is not a real number.
+      </action>
+      <action dev="tn" type="fix" issue="MATH-1232" due-to="Otmar Ertl"> <!-- backported to 3.6 -->
+        Improved performance of calculating the two-sample Kolmogorov-Smirnov
+        test statistic.
+      </action>
       <action dev="erans" type="fix" issue="MATH-1231">
         Lifted unnecessary restriction on constructor's argument of
         "MicrosphereInterpolator" (package "o.a.c.m.analysis.interpolation").
