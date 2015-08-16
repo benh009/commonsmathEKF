@@ -7,7 +7,10 @@ import org.apache.commons.math4.linear.Array2DRowRealMatrix;
 import org.apache.commons.math4.linear.ArrayRealVector;
 import org.apache.commons.math4.linear.RealMatrix;
 import org.apache.commons.math4.linear.RealVector;
-
+/**
+ * @author benoitH
+ *
+ */
 public abstract class DefaultProcessModelEKF extends DefaultProcessModel implements
 		ProcessModelEKF {
 	

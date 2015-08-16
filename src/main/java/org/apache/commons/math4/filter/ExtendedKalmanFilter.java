@@ -8,7 +8,10 @@ import org.apache.commons.math4.linear.NonSquareMatrixException;
 import org.apache.commons.math4.linear.RealMatrix;
 import org.apache.commons.math4.linear.RealVector;
 import org.apache.commons.math4.linear.SingularMatrixException;
-
+/**
+ * @author benoitH
+ *
+ */
 public class ExtendedKalmanFilter extends AbstractKalmanFilter {
 
 	

@@ -10,7 +10,10 @@ import org.apache.commons.math4.linear.NonSquareMatrixException;
 import org.apache.commons.math4.linear.RealMatrix;
 import org.apache.commons.math4.linear.RealVector;
 import org.apache.commons.math4.util.MathUtils;
-
+/**
+ * @author benoitH
+ *
+ */
 public  abstract class AbstractKalmanFilter {
 	
 	
@@ -110,10 +113,7 @@ public  abstract class AbstractKalmanFilter {
         // project the error covariance ahead
         // P(k)- = G * P(k-1) * G' + Q
 
-    	RealMatrix s=transitionMatrix.multiply(errorCovariance);
-    	RealMatrix ss = s.multiply(transitionMatrixT);
-    	RealMatrix n = processModel.getProcessNoise(u);
-    	
+	
         errorCovariance = (transitionMatrix.multiply(errorCovariance))
                 .multiply(transitionMatrixT)
                 .add(processModel.getProcessNoise(u));

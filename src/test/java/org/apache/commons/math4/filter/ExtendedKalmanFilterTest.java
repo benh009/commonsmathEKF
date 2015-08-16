@@ -29,7 +29,7 @@ public class ExtendedKalmanFilterTest {
         // P0 = [ 1 1 1 ]
         //      [ 1 1 1 ]
         //      [ 1 1 1 ]
-        RealMatrix P0 = new Array2DRowRealMatrix(new double[][] { {10/facteur, 0,0 }, { 0, 10/facteur,0 }, { 0,0,Math.PI/2} });
+        RealMatrix P0 = new Array2DRowRealMatrix(new double[][] { {10, 0,0 }, { 0, 10,0 }, { 0,0,Math.PI/2} });
 
 
 
@@ -154,7 +154,7 @@ public class ExtendedKalmanFilterTest {
         	//BDD des features 
         	
         	double[][] features = new double[][]{
-        		{50./facteur,0./facteur}};
+        		{50.,0.}};
 
 			@Override
 			public RealMatrix getJacobianH( int id) {
@@ -283,8 +283,7 @@ public class ExtendedKalmanFilterTest {
  * 
  */
 	
-	 //private static double facteur = 1000;
-	 private static double facteur = 1;
+
 
 		@Ignore
 	  @Test
@@ -296,22 +295,22 @@ public class ExtendedKalmanFilterTest {
 
 		  
 	         RealVector u = new ArrayRealVector(new double[] { 0,-44 });
-	         z = new ArrayRealVector(new double[] { 50.d/facteur,0});
+	         z = new ArrayRealVector(new double[] { 50.d,0});
 	         predictCorrect(filter, u,z,0);
 		  	
 
-	         u = new ArrayRealVector(new double[] { 10.d/facteur,0 });
-	         z = new ArrayRealVector(new double[] { 40.d/facteur,0.});
+	         u = new ArrayRealVector(new double[] { 10.d,0 });
+	         z = new ArrayRealVector(new double[] { 40.d,0.});
 	         predictCorrect(filter, u,z,0);
 	         
 	         
-	         u = new ArrayRealVector(new double[] { 10.d/facteur,0.d });
-	         z = new ArrayRealVector(new double[] { 25.d/facteur,0.});
+	         u = new ArrayRealVector(new double[] { 10.d,0.d });
+	         z = new ArrayRealVector(new double[] { 25.d,0.});
 	         predictCorrect(filter, u,z,0);
 	         
 	         
-	         u = new ArrayRealVector(new double[] { 10.d/facteur,0.d });
-	         z = new ArrayRealVector(new double[] { 10.d/facteur,0.});
+	         u = new ArrayRealVector(new double[] { 10.d,0.d });
+	         z = new ArrayRealVector(new double[] { 10.d,0.});
 	         predictCorrect(filter, u,z,0);
 
 
@@ -339,23 +338,23 @@ public class ExtendedKalmanFilterTest {
 
 		  	
 	         RealVector u = new ArrayRealVector(new double[] { 0.d,0.d});
-	         z = new ArrayRealVector(new double[] { 50.d/facteur,-Math.PI/2});
+	         z = new ArrayRealVector(new double[] { 50.d,-Math.PI/2});
 	         predictCorrect(filter, u,z,0);
 	         
 	         
 	         
-	         u = new ArrayRealVector(new double[] { 10.d/facteur,0.d });
-	         z = new ArrayRealVector(new double[] { 50.99d/facteur,-Math.toRadians(101.31)});
+	         u = new ArrayRealVector(new double[] { 10.d,0.d });
+	         z = new ArrayRealVector(new double[] { 50.99d,-Math.toRadians(101.31)});
 	         predictCorrect(filter, u,z,0);
 	         
 	         
 	         u = new ArrayRealVector(new double[] { 0.d,-101.31d });
-	         z = new ArrayRealVector(new double[] { 50.99d/facteur,0.});
+	         z = new ArrayRealVector(new double[] { 50.99d,0.});
 	         predictCorrect(filter, u,z,0);
 	         
 	         
-	         u = new ArrayRealVector(new double[] { 30.d/facteur,0d });
-	         z = new ArrayRealVector(new double[] { 10d/facteur,0.});
+	         u = new ArrayRealVector(new double[] { 30.d,0d });
+	         z = new ArrayRealVector(new double[] { 10d,0.});
 	         predictCorrect(filter, u,z,0);
 
 
@@ -368,11 +367,11 @@ public class ExtendedKalmanFilterTest {
 	  {
 		  printName("Test3");
 		  
-	         RealVector u = new ArrayRealVector(new double[] {0d/facteur,Math.toRadians(40) });
+	         RealVector u = new ArrayRealVector(new double[] {0d,Math.toRadians(40) });
 
 	         predict( u);
 	         
-	          u = new ArrayRealVector(new double[] {200d/facteur,0 });
+	          u = new ArrayRealVector(new double[] {200d,0 });
 		      predict( u);
 	         
 	         
@@ -385,7 +384,7 @@ public class ExtendedKalmanFilterTest {
 	  {
 		  printName("Test4");
 		  
-	         RealVector u = new ArrayRealVector(new double[] {0d/facteur,Math.toRadians(5) });
+	         RealVector u = new ArrayRealVector(new double[] {0d,Math.toRadians(5) });
 	         
 	         predict( u);
 	         predict( u);
@@ -396,14 +395,14 @@ public class ExtendedKalmanFilterTest {
 	         predict( u);
 	         predict( u);
 	         
-	          u = new ArrayRealVector(new double[] {1d/facteur,0 });
+	          u = new ArrayRealVector(new double[] {1d,0 });
 		      predict( u);
 
-	          u = new ArrayRealVector(new double[] {0d/facteur,Math.toRadians(180)  });
+	          u = new ArrayRealVector(new double[] {0d,Math.toRadians(180)  });
 
 		      predict( u);
 		      
-	          u = new ArrayRealVector(new double[] {10d/facteur,0 });
+	          u = new ArrayRealVector(new double[] {10d,0 });
 		      predict( u);
 
 

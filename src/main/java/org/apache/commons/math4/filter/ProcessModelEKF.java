@@ -2,7 +2,10 @@ package org.apache.commons.math4.filter;
 
 import org.apache.commons.math4.linear.RealMatrix;
 import org.apache.commons.math4.linear.RealVector;
-
+/**
+ * @author benoitH
+ *
+ */
 public interface ProcessModelEKF extends ProcessModel {
 
 	
