@@ -3,6 +3,7 @@ package org.apache.commons.math4.filter;
 import org.apache.commons.math4.exception.DimensionMismatchException;
 import org.apache.commons.math4.exception.NullArgumentException;
 import org.apache.commons.math4.linear.CholeskyDecomposition;
+import org.apache.commons.math4.linear.LUDecomposition;
 import org.apache.commons.math4.linear.MatrixDimensionMismatchException;
 import org.apache.commons.math4.linear.MatrixUtils;
 import org.apache.commons.math4.linear.NonSquareMatrixException;
@@ -14,9 +15,9 @@ public  abstract class AbstractKalmanFilter {
 	
 	
     /** The process model used by this filter instance. */
-    protected  ProcessModel processModel;
+    private  ProcessModel processModel;
     /** The measurement model used by this filter instance. */
-    protected  MeasurementModel measurementModel;
+    private  MeasurementModel measurementModel;
     
 	
     /** The internal state estimation vector, equivalent to x hat. */
@@ -108,7 +109,12 @@ public  abstract class AbstractKalmanFilter {
     	RealMatrix transitionMatrixT = transitionMatrix.transpose();
         // project the error covariance ahead
         // P(k)- = G * P(k-1) * G' + Q
-        errorCovariance = transitionMatrix.multiply(errorCovariance)
+
+    	RealMatrix s=transitionMatrix.multiply(errorCovariance);
+    	RealMatrix ss = s.multiply(transitionMatrixT);
+    	RealMatrix n = processModel.getProcessNoise(u);
+    	
+        errorCovariance = (transitionMatrix.multiply(errorCovariance))
                 .multiply(transitionMatrixT)
                 .add(processModel.getProcessNoise(u));
     }
@@ -128,6 +134,11 @@ public  abstract class AbstractKalmanFilter {
     {
         // KF Inn = z(k) - H * xHat(k)-
         // EKF Inn = z(k) - h(mu)
+    	
+    	System.out.println("z vs w");
+    	System.out.println("\tab w"+w);
+    	System.out.println("\tab z"+z);
+    	System.out.println("\tab z-w"+z.subtract(w));
 
         return  z.subtract(w);
 
@@ -155,9 +166,28 @@ public  abstract class AbstractKalmanFilter {
     	
         // K(k) * S = P(k)- * H'
         // S' * K(k)' = H * P(k)-'
-       return new CholeskyDecomposition(s).getSolver()
-                .solve(measurementMatrix.multiply(errorCovariance.transpose()))
-                .transpose();
+    	
+    	
+
+    	
+    	/*
+    	 errorCovariance.multiply(measurementMatrix.transpose()).multiply( new LUDecomposition(s).getSolver().getInverse() )
+    	  new CholeskyDecomposition(s).getSolver()
+    	        .solve(measurementMatrix.multiply(errorCovariance.transpose()))
+    	        .transpose();
+    	            	System.out.println("cov " +errorCovariance.transpose() );
+    	System.out.println("s " + s);
+    	System.out.println("m "+ measurementMatrix);
+    	System.out.println("m*cov"+measurementMatrix.multiply(errorCovariance.transpose()) );
+
+    	*
+    	*/
+
+    	
+       return    	 errorCovariance.multiply(measurementMatrix.transpose()).multiply( new LUDecomposition(s).getSolver().getInverse() );
+
+	
+
     	
     }
     

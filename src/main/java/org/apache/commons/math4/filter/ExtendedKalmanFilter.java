@@ -11,6 +11,9 @@ import org.apache.commons.math4.linear.SingularMatrixException;
 
 public class ExtendedKalmanFilter extends AbstractKalmanFilter {
 
+	
+
+	
     public ExtendedKalmanFilter(ProcessModelEKF process,
 			MeasurementModelEKF measurement) throws NullArgumentException,
 			NonSquareMatrixException, DimensionMismatchException,
@@ -60,9 +63,9 @@ public class ExtendedKalmanFilter extends AbstractKalmanFilter {
      *             if the dimension of the control vector does not match
      */
     public void predict(final RealVector u) throws DimensionMismatchException {
-
-        stateEstimation = processModel.getStateEstimation(u);
         RealMatrix g = processModel.getJacobianG(u);
+        stateEstimation = processModel.getStateEstimation(u);
+
         super.predict(g,u);
 
     }
